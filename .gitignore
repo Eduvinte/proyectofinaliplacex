@@ -1,0 +1,17 @@
+# Dependencias y artefactos
+node_modules
+.next
+out
+
+# Variables de entorno (contienen credenciales)
+.env
+.env.local
+.env*.local
+
+# Archivos del sistema
+.DS_Store
+*.log
+
+# Documentos académicos de las entregas (no forman parte del código)
+unidad*/
+*.docx

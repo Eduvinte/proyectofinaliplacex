@@ -1,0 +1,147 @@
+// Prisma schema — Base de datos SaludVida (MySQL)
+// Refleja el diccionario de datos y el modelo relacional en 3FN.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Perfil {
+  paciente
+  medico
+}
+
+enum EstadoHorario {
+  disponible
+  reservado
+  cancelado
+}
+
+enum EstadoReserva {
+  pendiente
+  confirmada
+  cancelada
+  atendida
+}
+
+model Usuario {
+  id             Int        @id @default(autoincrement()) @db.UnsignedInt
+  email          String     @unique @db.VarChar(100)
+  contrasenaHash String     @map("contrasena_hash") @db.VarChar(255)
+  perfil         Perfil
+  activo         Boolean    @default(true)
+  creadoEn       DateTime   @default(now()) @map("creado_en")
+
+  medico   Medico?
+  paciente Paciente?
+
+  @@map("usuarios")
+}
+
+model Especialidad {
+  id          Int       @id @default(autoincrement()) @db.UnsignedInt
+  nombre      String    @unique @db.VarChar(60)
+  descripcion String?   @db.VarChar(255)
+
+  medicos Medico[]
+
+  @@map("especialidades")
+}
+
+model Medico {
+  id             Int          @id @default(autoincrement()) @db.UnsignedInt
+  usuarioId      Int          @unique @map("usuario_id") @db.UnsignedInt
+  especialidadId Int          @map("especialidad_id") @db.UnsignedInt
+  rut            String       @unique @db.VarChar(12)
+  nombre         String       @db.VarChar(50)
+  apellido       String       @db.VarChar(50)
+  telefono       String?      @db.VarChar(15)
+
+  usuario             Usuario              @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  especialidad        Especialidad         @relation(fields: [especialidadId], references: [id], onDelete: Restrict)
+  horariosDisponibles HorarioDisponible[]
+  atenciones          Atencion[]
+
+  @@map("medicos")
+}
+
+model Paciente {
+  id              Int        @id @default(autoincrement()) @db.UnsignedInt
+  usuarioId       Int        @unique @map("usuario_id") @db.UnsignedInt
+  rut             String     @unique @db.VarChar(12)
+  nombre          String     @db.VarChar(50)
+  apellido        String     @db.VarChar(50)
+  fechaNacimiento DateTime?  @map("fecha_nacimiento") @db.Date
+  telefono        String?    @db.VarChar(15)
+  prevision       String?    @db.VarChar(30)
+
+  usuario   Usuario     @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  reservas  Reserva[]
+  atenciones Atencion[]
+
+  @@map("pacientes")
+}
+
+model HorarioDisponible {
+  id         Int           @id @default(autoincrement()) @db.UnsignedInt
+  medicoId   Int           @map("medico_id") @db.UnsignedInt
+  fecha      DateTime      @db.Date
+  horaInicio DateTime      @map("hora_inicio") @db.Time
+  horaFin    DateTime      @map("hora_fin") @db.Time
+  estado     EstadoHorario @default(disponible)
+
+  medico  Medico   @relation(fields: [medicoId], references: [id], onDelete: Cascade)
+  reserva Reserva?
+
+  @@map("horarios_disponibles")
+}
+
+model Reserva {
+  id           Int           @id @default(autoincrement()) @db.UnsignedInt
+  pacienteId   Int           @map("paciente_id") @db.UnsignedInt
+  horarioId    Int           @unique @map("horario_id") @db.UnsignedInt
+  estado       EstadoReserva @default(pendiente)
+  fechaReserva DateTime      @default(now()) @map("fecha_reserva")
+  motivo       String?       @db.VarChar(255)
+
+  paciente  Paciente          @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+  horario   HorarioDisponible @relation(fields: [horarioId], references: [id], onDelete: Restrict)
+  atencion  Atencion?
+
+  @@map("reservas")
+}
+
+model Atencion {
+  id            Int      @id @default(autoincrement()) @db.UnsignedInt
+  reservaId     Int      @unique @map("reserva_id") @db.UnsignedInt
+  medicoId      Int      @map("medico_id") @db.UnsignedInt
+  pacienteId    Int      @map("paciente_id") @db.UnsignedInt
+  diagnostico   String   @db.Text
+  tratamiento   String?  @db.Text
+  observaciones String?  @db.VarChar(500)
+  fechaAtencion DateTime @default(now()) @map("fecha_atencion")
+
+  reserva  Reserva  @relation(fields: [reservaId], references: [id], onDelete: Restrict)
+  medico   Medico   @relation(fields: [medicoId], references: [id], onDelete: Restrict)
+  paciente Paciente @relation(fields: [pacienteId], references: [id], onDelete: Restrict)
+  recetas  Receta[]
+
+  @@map("atenciones")
+}
+
+model Receta {
+  id           Int     @id @default(autoincrement()) @db.UnsignedInt
+  atencionId   Int     @map("atencion_id") @db.UnsignedInt
+  medicamento  String  @db.VarChar(100)
+  dosis        String  @db.VarChar(100)
+  duracion     String  @db.VarChar(50)
+  indicaciones String? @db.VarChar(500)
+
+  atencion Atencion @relation(fields: [atencionId], references: [id], onDelete: Cascade)
+
+  @@map("recetas")
+}
