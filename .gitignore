@@ -15,3 +15,4 @@ out
 # Documentos académicos de las entregas (no forman parte del código)
 unidad*/
 *.docx
+*.tsbuildinfo
