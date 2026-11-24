@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { obtenerSesion } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { fechaTexto, horaTexto } from "@/lib/formato";
+import BarraNavegacion from "@/components/barra-navegacion";
 
 export default async function HistorialPaciente({
   params,
@@ -14,8 +15,19 @@ export default async function HistorialPaciente({
 
   const { pacienteId } = await params;
 
-  const paciente = await prisma.paciente.findUnique({
-    where: { id: Number(pacienteId) },
+  const medico = await prisma.medico.findUnique({
+    where: { usuarioId: sesion.usuarioId },
+  });
+  if (!medico) redirect("/login");
+
+  const paciente = await prisma.paciente.findFirst({
+    where: {
+      id: Number(pacienteId),
+      OR: [
+        { reservas: { some: { horario: { medicoId: medico.id } } } },
+        { atenciones: { some: { medicoId: medico.id } } },
+      ],
+    },
     include: {
       atenciones: {
         include: { medico: true, recetas: true },
@@ -44,19 +56,16 @@ export default async function HistorialPaciente({
 
   return (
     <>
-      <header className="navbar">
-        <Link className="logo" href="/">
-          SaludVida
-        </Link>
-        <nav>
-          <Link href="/panel-medico">Mi agenda</Link>
-          <Link href="/panel-medico/pacientes">Pacientes</Link>
-          <Link href="/api/logout">Cerrar sesión</Link>
-        </nav>
-      </header>
+      <BarraNavegacion
+        items={[
+          { href: "/panel-medico", etiqueta: "Mi agenda", icono: "agenda" },
+          { href: "/panel-medico/disponibilidad", etiqueta: "Disponibilidad", icono: "calendario" },
+          { href: "/panel-medico/pacientes", etiqueta: "Pacientes", icono: "pacientes", activo: true },
+        ]}
+      />
 
       <main className="contenedor">
-        <h1 style={{ color: "var(--azul)" }}>
+        <h1 className="titulo-pagina">
           Historial — {paciente.nombre} {paciente.apellido}
         </h1>
         <p style={{ marginTop: "0.4rem" }}>

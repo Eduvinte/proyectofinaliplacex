@@ -164,10 +164,10 @@ INSERT INTO especialidades (nombre, descripcion) VALUES
   ('Pediatría', 'Atención médica de niños y adolescentes');
 
 INSERT INTO usuarios (email, contrasena_hash, perfil) VALUES
-  ('v.soto@saludvida.cl', '$2a$10$EJN.exampleHashV00P0gL1aVY0bQ2aS3WqoG1oXkC7', 'medico'),
-  ('p.reyes@saludvida.cl', '$2a$10$EJN.exampleHashV00P0gL1aVY0bQ2aS3WqoG1oXkC7', 'medico'),
-  ('camila.rojas@mail.com', '$2a$10$EJN.exampleHashV00P0gL1aVY0bQ2aS3WqoG1oXkC7', 'paciente'),
-  ('jorge.perez@mail.com', '$2a$10$EJN.exampleHashV00P0gL1aVY0bQ2aS3WqoG1oXkC7', 'paciente');
+  ('v.soto@saludvida.cl', '$2a$10$lwju6zBNOUEyHx4/9iok4OT4BR1gK2U8AQWOS1ddnE8535BRq8PQS', 'medico'),
+  ('p.reyes@saludvida.cl', '$2a$10$lwju6zBNOUEyHx4/9iok4OT4BR1gK2U8AQWOS1ddnE8535BRq8PQS', 'medico'),
+  ('camila.rojas@mail.com', '$2a$10$lwju6zBNOUEyHx4/9iok4OT4BR1gK2U8AQWOS1ddnE8535BRq8PQS', 'paciente'),
+  ('jorge.perez@mail.com', '$2a$10$lwju6zBNOUEyHx4/9iok4OT4BR1gK2U8AQWOS1ddnE8535BRq8PQS', 'paciente');
 
 INSERT INTO medicos (usuario_id, especialidad_id, rut, nombre, apellido, telefono) VALUES
   (1, 1, '15.432.987-6', 'Valentina', 'Soto', '+56 9 5555 1001'),
@@ -178,16 +178,19 @@ INSERT INTO pacientes (usuario_id, rut, nombre, apellido, fecha_nacimiento, tele
   (4, '18.765.432-1', 'Jorge', 'Pérez', '1988-11-03', '+56 9 5555 2002', 'ISAPRE');
 
 INSERT INTO horarios_disponibles (medico_id, fecha, hora_inicio, hora_fin, estado) VALUES
-  (1, '2026-11-20', '09:00:00', '09:30:00', 'reservado'),
-  (1, '2026-11-20', '09:30:00', '10:00:00', 'disponible'),
-  (1, '2026-11-20', '10:00:00', '10:30:00', 'disponible'),
-  (2, '2026-11-21', '11:00:00', '11:30:00', 'disponible');
+  (1, '2026-11-23', '09:00:00', '09:30:00', 'reservado'),
+  (1, '2026-11-25', '09:00:00', '09:30:00', 'reservado'),
+  (1, '2026-11-25', '09:30:00', '10:00:00', 'disponible'),
+  (1, '2026-11-25', '10:00:00', '10:30:00', 'disponible'),
+  (1, '2026-11-26', '15:00:00', '15:30:00', 'disponible'),
+  (2, '2026-11-27', '11:00:00', '11:30:00', 'disponible');
 
 INSERT INTO reservas (paciente_id, horario_id, estado, motivo) VALUES
-  (1, 1, 'confirmada', 'Control de rutina');
+  (1, 1, 'atendida', 'Síntomas respiratorios'),
+  (1, 2, 'confirmada', 'Control de rutina');
 
 INSERT INTO atenciones (reserva_id, medico_id, paciente_id, diagnostico, tratamiento) VALUES
-  (1, 1, 1, 'Paciente en buen estado general.', 'Mantener hábitos saludables.');
+  (1, 1, 1, 'Resfrío común.', 'Reposo, hidratación y manejo sintomático.');
 
 INSERT INTO recetas (atencion_id, medicamento, dosis, duracion, indicaciones) VALUES
   (1, 'Paracetamol 500 mg', '1 comprimido', '5 días', 'Tomar cada 8 horas con alimentos.');

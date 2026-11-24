@@ -6,15 +6,16 @@ TypeScript), Prisma ORM, MySQL 8, bcrypt para cifrado de contraseñas, JWT
 
 ## Funcionalidades implementadas
 
-- Registro e inicio de sesión con dos perfiles diferenciados (paciente y médico)
+- Registro público de pacientes e inicio de sesión con dos perfiles diferenciados;
+  las cuentas médicas son creadas internamente
 - Gestión de cuentas: validación de datos, contraseñas cifradas con bcrypt,
   sesiones JWT en cookies httpOnly y protección de rutas por perfil (middleware)
 - Paciente: búsqueda de horas disponibles por especialidad y fecha, reserva,
-  cancelación de reservas, panel con mis reservas e historial clínico (atenciones
-  y recetas)
+  motivo de consulta, cancelación, filtros de reservas, resumen e historial
+  clínico (atenciones y recetas)
 - Médico: agenda con confirmación de asistencia, registro de atención (diagnóstico,
   tratamiento y observaciones), emisión de recetas, gestión de bloques de
-  disponibilidad y consulta del historial de los pacientes
+  disponibilidad sin superposición y búsqueda de pacientes vinculados
 
 ## Requisitos
 
@@ -72,5 +73,5 @@ src/
 
 ## Base de datos
 
-El script SQL equivalente (CREATE DATABASE, tablas, claves, índices y datos de
-prueba) se encuentra en `../bd/saludvida.sql`.
+Los scripts de creación y datos de prueba, el MER y las instrucciones de carga
+se encuentran en `../bd/`.

@@ -3,6 +3,7 @@ import { obtenerSesion } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import FormularioDisponibilidad from "./formulario-disponibilidad";
 import BloqueHorario from "./bloque-horario";
+import BarraNavegacion from "@/components/barra-navegacion";
 
 export default async function Disponibilidad() {
   const sesion = await obtenerSesion();
@@ -25,20 +26,17 @@ export default async function Disponibilidad() {
 
   return (
     <>
-      <header className="navbar">
-        <Link className="logo" href="/">
-          SaludVida
-        </Link>
-        <nav>
-          <Link href="/panel-medico">Mi agenda</Link>
-          <Link href="/panel-medico/disponibilidad">Disponibilidad</Link>
-          <Link href="/panel-medico/pacientes">Pacientes</Link>
-          <Link href="/api/logout">Cerrar sesión</Link>
-        </nav>
-      </header>
+      <BarraNavegacion
+        items={[
+          { href: "/panel-medico", etiqueta: "Mi agenda", icono: "agenda" },
+          { href: "/panel-medico/disponibilidad", etiqueta: "Disponibilidad", icono: "calendario", activo: true },
+          { href: "/panel-medico/pacientes", etiqueta: "Pacientes", icono: "pacientes" },
+        ]}
+      />
 
       <main className="contenedor">
-        <h1 style={{ color: "var(--azul)" }}>Gestionar disponibilidad</h1>
+        <h1 className="titulo-pagina">Gestionar disponibilidad</h1>
+        <p className="subtitulo-pagina">Crea bloques sin superposición para que los pacientes puedan reservar.</p>
 
         <FormularioDisponibilidad />
 

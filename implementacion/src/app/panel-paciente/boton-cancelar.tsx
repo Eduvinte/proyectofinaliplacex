@@ -27,12 +27,11 @@ export default function BotonCancelar({ reservaId }: { reservaId: number }) {
   return (
     <>
       <button
-        className="boton boton-secundario"
-        style={{ marginTop: "0.6rem" }}
+        className="boton boton-peligro"
         onClick={cancelar}
         disabled={cargando}
       >
-        {cargando ? "Cancelando..." : "Cancelar reserva"}
+        {cargando ? "Cancelando..." : "Cancelar"}
       </button>
       {error ? <p className="error">{error}</p> : null}
     </>

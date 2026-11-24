@@ -4,9 +4,11 @@ import { jwtVerify } from "jose";
 const RUTAS_PROTEGIDAS = ["/panel-paciente", "/panel-medico"];
 
 function secretKey() {
-  return new TextEncoder().encode(
-    process.env.JWT_SECRET ?? "secreto-de-desarrollo-solo-para-pruebas"
-  );
+  const secreto = process.env.JWT_SECRET;
+  if (!secreto && process.env.NODE_ENV === "production") {
+    throw new Error("JWT_SECRET es obligatorio en producción.");
+  }
+  return new TextEncoder().encode(secreto ?? "secreto-de-desarrollo-solo-para-pruebas");
 }
 
 export async function middleware(request: NextRequest) {

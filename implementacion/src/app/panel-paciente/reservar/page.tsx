@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
+import BarraNavegacion from "@/components/barra-navegacion";
+import Icono from "@/components/icono";
 
 type Especialidad = { id: number; nombre: string };
 type Medico = { id: number; nombre: string; especialidad: string };
@@ -20,8 +21,10 @@ export default function ReservarHora() {
   const [especialidadId, setEspecialidadId] = useState("");
   const [medicoId, setMedicoId] = useState("");
   const [fecha, setFecha] = useState("");
+  const [motivo, setMotivo] = useState("");
   const [resultados, setResultados] = useState<HorarioDisponible[]>([]);
   const [buscando, setBuscando] = useState(false);
+  const [busquedaRealizada, setBusquedaRealizada] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
   const [reservando, setReservando] = useState<number | null>(null);
@@ -48,6 +51,7 @@ export default function ReservarHora() {
     setError("");
     setMensaje("");
     setResultados([]);
+    setBusquedaRealizada(false);
     if (!especialidadId) {
       setError("Selecciona una especialidad.");
       return;
@@ -65,6 +69,7 @@ export default function ReservarHora() {
     setBuscando(false);
     if (res.ok) {
       setResultados(await res.json());
+      setBusquedaRealizada(true);
     } else {
       const datos = await res.json();
       setError(datos.error ?? "Error al buscar disponibilidad.");
@@ -78,7 +83,7 @@ export default function ReservarHora() {
     const res = await fetch("/api/reservas", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ horarioId: id, motivo: "Consulta médica" }),
+      body: JSON.stringify({ horarioId: id, motivo: motivo.trim() || "Consulta médica" }),
     });
     setReservando(null);
     if (res.ok) {
@@ -94,21 +99,24 @@ export default function ReservarHora() {
 
   return (
     <>
-      <header className="navbar">
-        <Link className="logo" href="/">
-          SaludVida
-        </Link>
-        <nav>
-          <Link href="/panel-paciente">Mi panel</Link>
-          <Link href="/panel-paciente/reservar">Reservar hora</Link>
-          <Link href="/api/logout">Cerrar sesión</Link>
-        </nav>
-      </header>
+      <BarraNavegacion
+        items={[
+          { href: "/panel-paciente", etiqueta: "Mi panel", icono: "inicio" },
+          { href: "/panel-paciente/reservar", etiqueta: "Reservar hora", icono: "calendario", activo: true },
+        ]}
+      />
 
       <main className="contenedor">
-        <h1 style={{ color: "var(--azul)" }}>Reservar hora médica</h1>
+        <div className="encabezado-pagina">
+          <div>
+            <h1 className="titulo-pagina">Reservar hora médica</h1>
+            <p className="subtitulo-pagina">Selecciona especialidad, profesional y fecha para consultar disponibilidad.</p>
+          </div>
+        </div>
 
-        <form className="tarjeta" onSubmit={buscar} style={{ maxWidth: "560px" }}>
+        <form className="tarjeta" onSubmit={buscar} style={{ maxWidth: "680px" }}>
+          <h2>Busca una hora disponible</h2>
+          <p className="form-intro">Los resultados corresponden a bloques habilitados por cada profesional.</p>
           <div className="campo">
             <label htmlFor="especialidad">1. Especialidad</label>
             <select
@@ -157,12 +165,25 @@ export default function ReservarHora() {
             />
           </div>
 
+          <div className="campo">
+            <label htmlFor="motivo">4. Motivo de consulta</label>
+            <input
+              id="motivo"
+              maxLength={255}
+              placeholder="Ej.: control médico"
+              value={motivo}
+              onChange={(e) => setMotivo(e.target.value)}
+            />
+            <p className="ayuda-campo">Este dato ayudará al profesional a preparar la atención.</p>
+          </div>
+
           <button
             className="boton"
             type="submit"
             disabled={buscando || !especialidadId || !medicoId}
             style={{ width: "100%" }}
           >
+            <Icono nombre="calendario" />
             {buscando ? "Buscando..." : "Buscar horas disponibles"}
           </button>
           {error ? <p className="error">{error}</p> : null}
@@ -175,7 +196,7 @@ export default function ReservarHora() {
         ) : null}
 
         {resultados.length ? (
-          <section className="panel-cards" style={{ marginTop: "1.2rem" }}>
+          <section className="panel-cards" style={{ marginTop: "1.5rem" }} aria-label="Horarios disponibles">
             {resultados.map((h) => (
               <div className="panel-card" key={h.id}>
                 <h3>
@@ -192,11 +213,16 @@ export default function ReservarHora() {
                   onClick={() => reservar(h.id)}
                   disabled={reservando === h.id}
                 >
+                  <Icono nombre="verificado" />
                   {reservando === h.id ? "Reservando..." : "Reservar esta hora"}
                 </button>
               </div>
             ))}
           </section>
+        ) : busquedaRealizada && !error ? (
+          <div className="panel-card estado-vacio" style={{ maxWidth: 680, margin: "1.5rem auto" }}>
+            No se encontraron bloques disponibles para la fecha seleccionada. Prueba con otro día.
+          </div>
         ) : null}
       </main>
     </>

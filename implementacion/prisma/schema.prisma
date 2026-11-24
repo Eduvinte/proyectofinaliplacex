@@ -66,6 +66,7 @@ model Medico {
   horariosDisponibles HorarioDisponible[]
   atenciones          Atencion[]
 
+  @@index([especialidadId], map: "idx_medicos_especialidad")
   @@map("medicos")
 }
 
@@ -97,6 +98,8 @@ model HorarioDisponible {
   medico  Medico   @relation(fields: [medicoId], references: [id], onDelete: Cascade)
   reserva Reserva?
 
+  @@index([fecha], map: "idx_horarios_fecha")
+  @@index([medicoId], map: "idx_horarios_medico")
   @@map("horarios_disponibles")
 }
 
@@ -112,6 +115,8 @@ model Reserva {
   horario   HorarioDisponible @relation(fields: [horarioId], references: [id], onDelete: Restrict)
   atencion  Atencion?
 
+  @@index([pacienteId], map: "idx_reservas_paciente")
+  @@index([estado], map: "idx_reservas_estado")
   @@map("reservas")
 }
 
@@ -130,6 +135,8 @@ model Atencion {
   paciente Paciente @relation(fields: [pacienteId], references: [id], onDelete: Restrict)
   recetas  Receta[]
 
+  @@index([medicoId], map: "idx_atenciones_medico")
+  @@index([pacienteId], map: "idx_atenciones_paciente")
   @@map("atenciones")
 }
 
@@ -143,5 +150,6 @@ model Receta {
 
   atencion Atencion @relation(fields: [atencionId], references: [id], onDelete: Cascade)
 
+  @@index([atencionId], map: "idx_recetas_atencion")
   @@map("recetas")
 }

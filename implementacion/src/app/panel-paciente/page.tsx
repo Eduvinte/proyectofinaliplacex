@@ -1,10 +1,18 @@
 import Link from "next/link";
+import BarraNavegacion from "@/components/barra-navegacion";
+import Icono from "@/components/icono";
 import { obtenerSesion } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { fechaTexto, horaTexto } from "@/lib/formato";
 import BotonCancelar from "./boton-cancelar";
 
-export default async function PanelPaciente() {
+const ESTADOS_ACTIVOS = new Set(["pendiente", "confirmada"]);
+
+export default async function PanelPaciente({
+  searchParams,
+}: {
+  searchParams: Promise<{ vista?: string }>;
+}) {
   const sesion = await obtenerSesion();
   if (!sesion) return null;
 
@@ -15,7 +23,6 @@ export default async function PanelPaciente() {
         include: {
           horario: { include: { medico: { include: { especialidad: true } } } },
         },
-        orderBy: { fechaReserva: "desc" },
       },
       atenciones: {
         include: { medico: true, recetas: true },
@@ -24,110 +31,146 @@ export default async function PanelPaciente() {
     },
   });
 
+  if (!paciente) return null;
+
+  const { vista = "proximas" } = await searchParams;
+  const mostrarHistorial = vista === "historial";
+  const activas = paciente.reservas
+    .filter((reserva) => ESTADOS_ACTIVOS.has(reserva.estado))
+    .sort((a, b) => {
+      const fecha = a.horario.fecha.getTime() - b.horario.fecha.getTime();
+      return fecha || a.horario.horaInicio.getTime() - b.horario.horaInicio.getTime();
+    });
+  const historicas = paciente.reservas
+    .filter((reserva) => !ESTADOS_ACTIVOS.has(reserva.estado))
+    .sort((a, b) => b.horario.fecha.getTime() - a.horario.fecha.getTime());
+  const reservasMostradas = mostrarHistorial ? historicas : activas;
+  const proxima = activas[0];
+
   return (
     <>
-      <header className="navbar">
-        <Link className="logo" href="/">
-          SaludVida
-        </Link>
-        <nav>
-          <Link href="/panel-paciente">Mi panel</Link>
-          <Link href="/panel-paciente/reservar">Reservar hora</Link>
-          <Link href="/api/logout">Cerrar sesión</Link>
-        </nav>
-      </header>
+      <BarraNavegacion
+        items={[
+          { href: "/panel-paciente", etiqueta: "Mi panel", icono: "inicio", activo: true },
+          { href: "/panel-paciente/reservar", etiqueta: "Reservar hora", icono: "calendario" },
+        ]}
+      />
 
       <main className="contenedor">
-        <h1 style={{ color: "var(--azul)" }}>
-          Hola, {paciente?.nombre ?? sesion.email}
-        </h1>
+        <div className="encabezado-pagina">
+          <div>
+            <h1 className="titulo-pagina">Hola, {paciente.nombre}</h1>
+            <p className="subtitulo-pagina">
+              Aquí puedes revisar tus próximas horas y tu historial clínico.
+            </p>
+          </div>
+          <Link className="boton boton-grande" href="/panel-paciente/reservar">
+            <Icono nombre="calendario" />
+            Reservar nueva hora
+          </Link>
+        </div>
 
-        <section>
-          <h2 style={{ fontSize: "1.15rem", color: "var(--azul)", margin: "1.2rem 0 0.6rem" }}>
-            Mis reservas
-          </h2>
-          {paciente?.reservas.length ? (
-            <div className="panel-cards">
-              {paciente.reservas.map((reserva) => (
-                <div className="panel-card" key={reserva.id}>
-                  <h3>
-                    Dr(a). {reserva.horario.medico.nombre}{" "}
-                    {reserva.horario.medico.apellido}
-                  </h3>
-                  <p style={{ fontSize: "0.9rem" }}>
-                    {reserva.horario.medico.especialidad.nombre}
-                    <br />
-                    {fechaTexto(reserva.horario.fecha)} ·{" "}
-                    {horaTexto(reserva.horario.horaInicio)} hrs
-                    <br />
-                    Estado: <strong>{reserva.estado}</strong>
-                    {reserva.motivo ? (
-                      <>
-                        <br />
-                        Motivo: {reserva.motivo}
-                      </>
-                    ) : null}
-                  </p>
-                  {reserva.estado === "pendiente" || reserva.estado === "confirmada" ? (
-                    <BotonCancelar reservaId={reserva.id} />
-                  ) : null}
-                </div>
-              ))}
+        <section className="resumen-panel" aria-label="Resumen del paciente">
+          <div className="resumen-item">
+            <Icono nombre="calendario" />
+            <div>
+              <span>Próxima hora</span>
+              <strong>{proxima ? `${fechaTexto(proxima.horario.fecha)} · ${horaTexto(proxima.horario.horaInicio)}` : "Sin reservas"}</strong>
             </div>
-          ) : (
-            <div className="panel-card">
-              <p style={{ fontSize: "0.9rem" }}>
-                Aún no tienes horas reservadas.{" "}
-                <Link href="/panel-paciente/reservar">Reserva tu primera hora aquí</Link>.
-              </p>
-            </div>
-          )}
+          </div>
+          <div className="resumen-item">
+            <Icono nombre="verificado" />
+            <div><span>Reservas activas</span><strong>{activas.length}</strong></div>
+          </div>
+          <div className="resumen-item">
+            <Icono nombre="historial" />
+            <div><span>Atenciones registradas</span><strong>{paciente.atenciones.length}</strong></div>
+          </div>
         </section>
 
-        <section>
-          <h2 style={{ fontSize: "1.15rem", color: "var(--azul)", margin: "1.4rem 0 0.6rem" }}>
-            Historial clínico
-          </h2>
-          {paciente?.atenciones.length ? (
-            <div className="panel-cards">
-              {paciente.atenciones.map((atencion) => (
-                <div className="panel-card" key={atencion.id}>
-                  <h3>
-                    Atención del {atencion.fechaAtencion.toLocaleDateString("es-CL")}
-                  </h3>
-                  <p style={{ fontSize: "0.9rem" }}>
-                    Médico: Dr(a). {atencion.medico.nombre}{" "}
-                    {atencion.medico.apellido}
-                    <br />
-                    Diagnóstico: {atencion.diagnostico}
-                    {atencion.tratamiento ? (
-                      <>
-                        <br />
-                        Tratamiento: {atencion.tratamiento}
-                      </>
-                    ) : null}
-                  </p>
-                  {atencion.recetas.length ? (
-                    <p style={{ fontSize: "0.85rem", marginTop: "0.5rem" }}>
-                      <strong>Recetas:</strong>
-                      <br />
-                      {atencion.recetas
-                        .map(
-                          (r) =>
-                            `${r.medicamento} — ${r.dosis}, ${r.duracion}`
-                        )
-                        .join(" · ")}
-                    </p>
-                  ) : null}
+        <div className="panel-layout">
+          <section className="panel-seccion">
+            <div className="panel-seccion-cabecera">
+              <Icono nombre="agenda" />
+              <h2>Mis reservas</h2>
+            </div>
+            <div className="panel-seccion-cuerpo">
+              <div className="tabs" aria-label="Filtrar reservas">
+                <Link className={!mostrarHistorial ? "tab activo" : "tab"} href="/panel-paciente">Próximas</Link>
+                <Link className={mostrarHistorial ? "tab activo" : "tab"} href="/panel-paciente?vista=historial">Historial</Link>
+              </div>
+              {reservasMostradas.length ? (
+                <div className="lista-agenda">
+                  {reservasMostradas.map((reserva) => (
+                    <article className="fila-agenda" key={reserva.id}>
+                      <div>
+                        <h3>{reserva.horario.medico.especialidad.nombre}</h3>
+                        <p>
+                          Dr(a). {reserva.horario.medico.nombre} {reserva.horario.medico.apellido}<br />
+                          {fechaTexto(reserva.horario.fecha)} · {horaTexto(reserva.horario.horaInicio)} hrs
+                          {reserva.motivo ? <> · {reserva.motivo}</> : null}
+                        </p>
+                      </div>
+                      <div className="fila-acciones">
+                        <span className={`estado estado-${reserva.estado}`}>
+                          <Icono nombre="verificado" />
+                          {reserva.estado}
+                        </span>
+                        {ESTADOS_ACTIVOS.has(reserva.estado) ? <BotonCancelar reservaId={reserva.id} /> : null}
+                      </div>
+                    </article>
+                  ))}
                 </div>
-              ))}
+              ) : (
+                <div className="estado-vacio">
+                  <p>{mostrarHistorial ? "No tienes reservas anteriores." : "Aún no tienes horas próximas."}</p>
+                  {!mostrarHistorial ? <Link href="/panel-paciente/reservar">Reservar una hora</Link> : null}
+                </div>
+              )}
             </div>
+          </section>
+
+          <aside className="panel-lateral">
+            <div className="panel-lateral-cabecera">
+              <Icono nombre="calendario" />
+              <h2>Próxima hora</h2>
+            </div>
+            <div className="panel-lateral-cuerpo">
+              {proxima ? (
+                <div className="detalle-proximo">
+                  <h3>{proxima.horario.medico.especialidad.nombre}</h3>
+                  <p className="detalle-linea"><Icono nombre="paciente" /> Dr(a). {proxima.horario.medico.nombre} {proxima.horario.medico.apellido}</p>
+                  <p className="detalle-linea"><Icono nombre="calendario" /> {fechaTexto(proxima.horario.fecha)} · {horaTexto(proxima.horario.horaInicio)}</p>
+                  <span className={`estado estado-${proxima.estado}`}>{proxima.estado}</span>
+                </div>
+              ) : (
+                <div className="estado-vacio">No hay una próxima hora programada.</div>
+              )}
+            </div>
+          </aside>
+        </div>
+
+        <section className="tabla-contenedor seccion-secundaria" id="historial-clinico">
+          <div className="tabla-cabecera">
+            <Icono nombre="historial" />
+            <h2 className="seccion-titulo">Historial clínico reciente</h2>
+          </div>
+          {paciente.atenciones.length ? (
+            <table className="tabla-datos">
+              <thead><tr><th>Fecha</th><th>Profesional</th><th>Diagnóstico</th><th>Receta</th></tr></thead>
+              <tbody>
+                {paciente.atenciones.slice(0, 5).map((atencion) => (
+                  <tr key={atencion.id}>
+                    <td>{atencion.fechaAtencion.toLocaleDateString("es-CL")}</td>
+                    <td>Dr(a). {atencion.medico.nombre} {atencion.medico.apellido}</td>
+                    <td>{atencion.diagnostico}</td>
+                    <td>{atencion.recetas.length ? `${atencion.recetas.length} indicada(s)` : "Sin receta"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           ) : (
-            <div className="panel-card">
-              <p style={{ fontSize: "0.9rem" }}>
-                No tienes atenciones registradas todavía.
-              </p>
-            </div>
+            <div className="estado-vacio">No tienes atenciones registradas todavía.</div>
           )}
         </section>
       </main>

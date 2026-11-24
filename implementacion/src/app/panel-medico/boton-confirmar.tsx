@@ -30,17 +30,13 @@ export default function BotonConfirmar({
   }
 
   if (confirmada) {
-    return (
-      <span className="badge" style={{ alignSelf: "center" }}>
-        Asistencia confirmada
-      </span>
-    );
+    return null;
   }
 
   return (
     <>
       <button className="boton" onClick={confirmar} disabled={cargando}>
-        {cargando ? "Confirmando..." : "Confirmar asistencia"}
+        {cargando ? "Confirmando..." : "Confirmar"}
       </button>
       {error ? <p className="error">{error}</p> : null}
     </>

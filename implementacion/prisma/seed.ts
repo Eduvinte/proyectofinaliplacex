@@ -75,7 +75,17 @@ async function main() {
     },
   });
 
-  const horario = await prisma.horarioDisponible.create({
+  const horarioAtendido = await prisma.horarioDisponible.create({
+    data: {
+      medicoId: soto.id,
+      fecha: new Date("2026-11-23T00:00:00Z"),
+      horaInicio: new Date("1970-01-01T09:00:00Z"),
+      horaFin: new Date("1970-01-01T09:30:00Z"),
+      estado: "reservado",
+    },
+  });
+
+  const horarioProximo = await prisma.horarioDisponible.create({
     data: {
       medicoId: soto.id,
       fecha: new Date("2026-11-25T00:00:00Z"),
@@ -114,22 +124,42 @@ async function main() {
     ],
   });
 
-  const reserva = await prisma.reserva.create({
+  const reservaAtendida = await prisma.reserva.create({
     data: {
       pacienteId: camila.id,
-      horarioId: horario.id,
+      horarioId: horarioAtendido.id,
+      estado: "atendida",
+      motivo: "Síntomas respiratorios",
+    },
+  });
+
+  await prisma.reserva.create({
+    data: {
+      pacienteId: camila.id,
+      horarioId: horarioProximo.id,
       estado: "confirmada",
       motivo: "Control de rutina",
     },
   });
 
-  await prisma.atencion.create({
+  const atencion = await prisma.atencion.create({
     data: {
-      reservaId: reserva.id,
+      reservaId: reservaAtendida.id,
       medicoId: soto.id,
       pacienteId: camila.id,
-      diagnostico: "Paciente en buen estado general.",
-      tratamiento: "Mantener hábitos saludables.",
+      diagnostico: "Resfrío común.",
+      tratamiento: "Reposo, hidratación y manejo sintomático.",
+      fechaAtencion: new Date("2026-11-23T09:20:00Z"),
+    },
+  });
+
+  await prisma.receta.create({
+    data: {
+      atencionId: atencion.id,
+      medicamento: "Paracetamol 500 mg",
+      dosis: "1 comprimido cada 8 horas",
+      duracion: "3 días",
+      indicaciones: "Tomar con alimentos si existe malestar gástrico.",
     },
   });
 

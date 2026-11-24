@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import CabeceraPublica from "@/components/cabecera-publica";
 
 function FormularioLogin() {
   const router = useRouter();
@@ -36,33 +37,47 @@ function FormularioLogin() {
   }
 
   return (
-    <div className="contenedor">
-      <form className="tarjeta" onSubmit={manejarEnvio}>
-        <h2 style={{ color: "var(--azul)", marginBottom: "1rem", textAlign: "center" }}>
-          Iniciar sesión
-        </h2>
-        {params.get("registro") === "ok" && (
-          <p style={{ color: "#2e7d32", fontSize: "0.9rem", textAlign: "center", marginBottom: "0.8rem" }}>
-            Cuenta creada correctamente. Ingresa tus credenciales.
+    <>
+      <CabeceraPublica />
+      <main className="auth-shell">
+        <section className="auth-contexto">
+          <h1>Tu información de salud, siempre disponible</h1>
+          <p>
+            Ingresa para reservar una hora, consultar tus atenciones o gestionar
+            la agenda médica según tu perfil.
           </p>
-        )}
-        <div className="campo">
-          <label htmlFor="email">Correo electrónico</label>
-          <input id="email" name="email" type="email" required />
-        </div>
-        <div className="campo">
-          <label htmlFor="contrasena">Contraseña</label>
-          <input id="contrasena" name="contrasena" type="password" required />
-        </div>
-        <button className="boton" type="submit" disabled={cargando} style={{ width: "100%" }}>
-          {cargando ? "Ingresando..." : "Ingresar"}
-        </button>
-        {error && <p className="error">{error}</p>}
-        <p style={{ marginTop: "1rem", fontSize: "0.9rem", textAlign: "center" }}>
-          ¿No tienes cuenta? <Link href="/registro">Regístrate aquí</Link>
-        </p>
-      </form>
-    </div>
+          <div className="auth-pasos" aria-label="Funciones disponibles">
+            <div className="auth-paso"><span>1</span> Reserva con disponibilidad real</div>
+            <div className="auth-paso"><span>2</span> Revisa tus reservas e historial</div>
+            <div className="auth-paso"><span>3</span> Accede desde cualquier dispositivo</div>
+          </div>
+        </section>
+        <section className="auth-formulario">
+          <form className="tarjeta" onSubmit={manejarEnvio}>
+            <h2>Iniciar sesión</h2>
+            <p className="form-intro">Ingresa el correo y la contraseña de tu cuenta.</p>
+            {params.get("registro") === "ok" ? (
+              <p className="exito">Cuenta creada correctamente. Ya puedes ingresar.</p>
+            ) : null}
+            <div className="campo">
+              <label htmlFor="email">Correo electrónico</label>
+              <input id="email" name="email" type="email" autoComplete="email" required />
+            </div>
+            <div className="campo">
+              <label htmlFor="contrasena">Contraseña</label>
+              <input id="contrasena" name="contrasena" type="password" autoComplete="current-password" required />
+            </div>
+            <button className="boton" type="submit" disabled={cargando} style={{ width: "100%" }}>
+              {cargando ? "Ingresando..." : "Ingresar"}
+            </button>
+            {error ? <p className="error" role="alert">{error}</p> : null}
+            <p style={{ marginTop: "1rem", fontSize: "0.9rem", textAlign: "center" }}>
+              ¿No tienes cuenta? <Link href="/registro">Crea una cuenta de paciente</Link>
+            </p>
+          </form>
+        </section>
+      </main>
+    </>
   );
 }
 

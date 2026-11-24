@@ -81,6 +81,35 @@ export async function POST(request: Request) {
     const inicio = new Date(`1970-01-01T${horaInicio}:00Z`);
     const fin = new Date(`1970-01-01T${horaFin}:00Z`);
 
+    if ([fechaDate, inicio, fin].some((valor) => Number.isNaN(valor.getTime()))) {
+      return NextResponse.json({ error: "La fecha o el horario no es válido." }, { status: 400 });
+    }
+    const hoy = new Date();
+    hoy.setUTCHours(0, 0, 0, 0);
+    if (fechaDate < hoy) {
+      return NextResponse.json({ error: "No se pueden crear bloques en una fecha pasada." }, { status: 400 });
+    }
+
+    const bloquesDelDia = await prisma.horarioDisponible.findMany({
+      where: {
+        medicoId: medico.id,
+        fecha: fechaDate,
+        estado: { not: "cancelado" },
+      },
+      select: { horaInicio: true, horaFin: true },
+    });
+    const bloqueSuperpuesto = bloquesDelDia.some(
+      (bloque) =>
+        bloque.horaInicio.getTime() < fin.getTime() &&
+        bloque.horaFin.getTime() > inicio.getTime()
+    );
+    if (bloqueSuperpuesto) {
+      return NextResponse.json(
+        { error: "El horario se superpone con otro bloque existente." },
+        { status: 409 }
+      );
+    }
+
     const bloque = await prisma.horarioDisponible.create({
       data: { medicoId: medico.id, fecha: fechaDate, horaInicio: inicio, horaFin: fin },
     });

@@ -17,8 +17,10 @@ reduce el ausentismo y centraliza el historial clínico de los pacientes.
 
 ```
 ├── bd/
-│   └── saludvida.sql          # Script SQL: creación de la BD, tablas, claves,
-│                              # índices y datos de prueba
+│   ├── 01_creacion.sql        # Tablas, claves, índices y restricciones
+│   ├── 02_datos_prueba.sql    # Datos sintéticos con credenciales funcionales
+│   ├── MER_SaludVida.pdf      # Modelo entidad-relación
+│   └── README.txt             # Orden de ejecución y relaciones principales
 └── implementacion/            # Aplicación Next.js
     ├── prisma/
     │   ├── schema.prisma      # Modelo de datos (8 tablas, 3FN)
@@ -33,12 +35,15 @@ reduce el ausentismo y centraliza el historial clínico de los pacientes.
 
 ## Funcionalidades
 
-- Registro e inicio de sesión con dos perfiles diferenciados (paciente y médico)
+- Registro público de pacientes e inicio de sesión con dos perfiles diferenciados
+  (las cuentas médicas son provisionadas internamente)
 - **Paciente:** reservar hora por especialidad → médico → fecha, cancelar
   reservas, ver mis reservas e historial clínico (atenciones y recetas)
 - **Médico:** agenda con confirmación de asistencia, registro de atención
   (diagnóstico, tratamiento y observaciones), emisión de recetas, gestión de
-  bloques de disponibilidad y consulta del historial de los pacientes
+  bloques de disponibilidad sin superposición, búsqueda de pacientes vinculados
+  y consulta de su historial
+- Paneles responsive con resúmenes, filtros de reservas y motivo de consulta
 
 ## Ejecución local
 
@@ -66,5 +71,5 @@ Abrir http://localhost:3000
 ## Base de datos (8 tablas, 3FN)
 
 usuarios, especialidades, medicos, pacientes, horarios_disponibles, reservas,
-atenciones y recetas. El detalle del modelo, el diccionario de datos y la
-normalización se documentan en los informes del proyecto.
+atenciones y recetas. Los scripts separados, el MER y las instrucciones se
+encuentran en la carpeta `bd/`.

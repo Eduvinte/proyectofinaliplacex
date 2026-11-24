@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import CabeceraPublica from "@/components/cabecera-publica";
 
 export default function Registro() {
   const router = useRouter();
@@ -21,7 +22,6 @@ export default function Registro() {
       body: JSON.stringify({
         email: form.get("email"),
         contrasena: form.get("contrasena"),
-        perfil: form.get("perfil"),
         nombre: form.get("nombre"),
         apellido: form.get("apellido"),
         rut: form.get("rut"),
@@ -38,49 +38,57 @@ export default function Registro() {
   }
 
   return (
-    <div className="contenedor">
-      <form className="tarjeta" onSubmit={manejarEnvio}>
-        <h2 style={{ color: "var(--azul)", marginBottom: "1rem", textAlign: "center" }}>
-          Crear cuenta
-        </h2>
-
-        <div className="campo">
-          <label htmlFor="nombre">Nombre</label>
-          <input id="nombre" name="nombre" required maxLength={50} />
-        </div>
-        <div className="campo">
-          <label htmlFor="apellido">Apellido</label>
-          <input id="apellido" name="apellido" required maxLength={50} />
-        </div>
-        <div className="campo">
-          <label htmlFor="rut">RUT</label>
-          <input id="rut" name="rut" required maxLength={12} placeholder="12.345.678-9" />
-        </div>
-        <div className="campo">
-          <label htmlFor="email">Correo electrónico</label>
-          <input id="email" name="email" type="email" required maxLength={100} />
-        </div>
-        <div className="campo">
-          <label htmlFor="contrasena">Contraseña</label>
-          <input id="contrasena" name="contrasena" type="password" required minLength={8} />
-        </div>
-        <div className="campo">
-          <label htmlFor="perfil">Perfil de usuario</label>
-          <select id="perfil" name="perfil" defaultValue="paciente">
-            <option value="paciente">Paciente</option>
-            <option value="medico">Médico</option>
-          </select>
-        </div>
-
-        <button className="boton" type="submit" disabled={cargando} style={{ width: "100%" }}>
-          {cargando ? "Creando cuenta..." : "Registrarme"}
-        </button>
-
-        {error && <p className="error">{error}</p>}
-        <p style={{ marginTop: "1rem", fontSize: "0.9rem", textAlign: "center" }}>
-          ¿Ya tienes cuenta? <Link href="/login">Inicia sesión</Link>
-        </p>
-      </form>
-    </div>
+    <>
+      <CabeceraPublica />
+      <main className="auth-shell">
+        <section className="auth-contexto">
+          <h1>Crea tu cuenta de paciente</h1>
+          <p>
+            Regístrate para reservar horas y consultar tu historial. Las cuentas
+            médicas son creadas de forma interna por el centro.
+          </p>
+          <div className="auth-pasos" aria-label="Proceso de registro">
+            <div className="auth-paso"><span>1</span> Completa tus datos personales</div>
+            <div className="auth-paso"><span>2</span> Crea una contraseña segura</div>
+            <div className="auth-paso"><span>3</span> Ingresa y reserva tu primera hora</div>
+          </div>
+        </section>
+        <section className="auth-formulario">
+          <form className="tarjeta" onSubmit={manejarEnvio}>
+            <h2>Crear cuenta</h2>
+            <p className="form-intro">Todos los campos son obligatorios.</p>
+            <div className="campo">
+              <label htmlFor="nombre">Nombre</label>
+              <input id="nombre" name="nombre" autoComplete="given-name" required maxLength={50} />
+            </div>
+            <div className="campo">
+              <label htmlFor="apellido">Apellido</label>
+              <input id="apellido" name="apellido" autoComplete="family-name" required maxLength={50} />
+            </div>
+            <div className="campo">
+              <label htmlFor="rut">RUT</label>
+              <input id="rut" name="rut" required maxLength={12} placeholder="12.345.678-5" />
+              <p className="ayuda-campo">Incluye puntos y guion.</p>
+            </div>
+            <div className="campo">
+              <label htmlFor="email">Correo electrónico</label>
+              <input id="email" name="email" type="email" autoComplete="email" required maxLength={100} />
+            </div>
+            <div className="campo">
+              <label htmlFor="contrasena">Contraseña</label>
+              <input id="contrasena" name="contrasena" type="password" autoComplete="new-password" required minLength={8} />
+              <p className="ayuda-campo">Usa al menos 8 caracteres.</p>
+            </div>
+            <button className="boton" type="submit" disabled={cargando} style={{ width: "100%" }}>
+              {cargando ? "Creando cuenta..." : "Crear mi cuenta"}
+            </button>
+            {error ? <p className="error" role="alert">{error}</p> : null}
+            <p style={{ marginTop: "1rem", fontSize: "0.9rem", textAlign: "center" }}>
+              ¿Ya tienes cuenta? <Link href="/login">Inicia sesión</Link>
+            </p>
+          </form>
+        </section>
+      </main>
+    </>
   );
 }

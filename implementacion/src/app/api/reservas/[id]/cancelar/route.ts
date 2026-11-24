@@ -7,7 +7,7 @@ export async function POST(
   ctx: { params: Promise<{ id: string }> }
 ) {
   const sesion = await obtenerSesion();
-  if (!sesion) {
+  if (!sesion || sesion.perfil !== "paciente") {
     return NextResponse.json({ error: "No autorizado." }, { status: 401 });
   }
 
@@ -20,10 +20,7 @@ export async function POST(
     if (!reserva) {
       return NextResponse.json({ error: "Reserva no encontrada." }, { status: 404 });
     }
-    if (
-      sesion.perfil === "paciente" &&
-      reserva.paciente.usuarioId !== sesion.usuarioId
-    ) {
+    if (reserva.paciente.usuarioId !== sesion.usuarioId) {
       return NextResponse.json({ error: "No autorizado." }, { status: 403 });
     }
     if (reserva.estado === "cancelada" || reserva.estado === "atendida") {

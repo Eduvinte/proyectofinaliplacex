@@ -10,9 +10,11 @@ export type SesionUsuario = {
 };
 
 function secretKey() {
-  return new TextEncoder().encode(
-    process.env.JWT_SECRET ?? "secreto-de-desarrollo-solo-para-pruebas"
-  );
+  const secreto = process.env.JWT_SECRET;
+  if (!secreto && process.env.NODE_ENV === "production") {
+    throw new Error("JWT_SECRET es obligatorio en producción.");
+  }
+  return new TextEncoder().encode(secreto ?? "secreto-de-desarrollo-solo-para-pruebas");
 }
 
 export async function crearSesion(datos: SesionUsuario) {
@@ -43,7 +45,18 @@ export async function obtenerSesion(): Promise<SesionUsuario | null> {
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, secretKey());
-    return payload as unknown as SesionUsuario;
+    if (
+      typeof payload.usuarioId !== "number" ||
+      (payload.perfil !== "paciente" && payload.perfil !== "medico") ||
+      typeof payload.email !== "string"
+    ) {
+      return null;
+    }
+    return {
+      usuarioId: payload.usuarioId,
+      perfil: payload.perfil,
+      email: payload.email,
+    };
   } catch {
     return null;
   }
