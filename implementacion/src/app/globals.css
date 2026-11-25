@@ -291,7 +291,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .estado-vacio { padding: 2rem 1.25rem; color: var(--gris-suave); text-align: center; }
 
 .auth-shell { min-height: calc(100vh - 77px); display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(480px, 1.1fr); background: var(--blanco); }
-.auth-contexto { padding: 4rem max(2rem, calc((100vw - 1180px) / 2)); display: flex; flex-direction: column; justify-content: center; background: var(--azul); color: var(--blanco); }
+.auth-contexto { padding: 4rem clamp(2rem, 5vw, 5rem); display: flex; flex-direction: column; justify-content: center; background: var(--azul); color: var(--blanco); }
 .auth-contexto h1 { max-width: 520px; font-size: clamp(2.4rem, 4vw, 4rem); line-height: 1.05; letter-spacing: -0.05em; }
 .auth-contexto p { max-width: 510px; margin-top: 1.2rem; color: #d9e6ee; font-size: 1.05rem; }
 .auth-pasos { margin-top: 2rem; display: grid; gap: 0.85rem; }
